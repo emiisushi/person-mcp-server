@@ -5,26 +5,39 @@ import { PersonCreateSchema, requireApiKey } from "@/lib/validation";
 export const dynamic = "force-dynamic";
 
 export async function GET(req: Request) {
-  const { searchParams } = new URL(req.url);
-  const q = searchParams.get("q")?.trim();
-  const take = Math.min(Number(searchParams.get("limit") ?? 100), 500);
+  try {
+    const { searchParams } = new URL(req.url);
+    const q = searchParams.get("q")?.trim();
+    const take = Math.min(Number(searchParams.get("limit") ?? 100), 500);
 
-  const where = q
-    ? {
-        OR: [
-          { name: { contains: q, mode: "insensitive" as const } },
-          { email: { contains: q, mode: "insensitive" as const } },
-          { role: { contains: q, mode: "insensitive" as const } },
-        ],
-      }
-    : {};
+    const where = q
+      ? {
+          OR: [
+            { name: { contains: q, mode: "insensitive" as const } },
+            { email: { contains: q, mode: "insensitive" as const } },
+            { role: { contains: q, mode: "insensitive" as const } },
+          ],
+        }
+      : {};
 
-  const persons = await prisma.person.findMany({
-    where,
-    orderBy: { createdAt: "desc" },
-    take,
-  });
-  return NextResponse.json({ ok: true, count: persons.length, data: persons });
+    const persons = await prisma.person.findMany({
+      where,
+      orderBy: { createdAt: "desc" },
+      take,
+    });
+    return NextResponse.json({ ok: true, count: persons.length, data: persons });
+  } catch (e: any) {
+    return NextResponse.json(
+      {
+        ok: false,
+        error: "Database error",
+        detail: e?.message ?? String(e),
+        hint:
+          "Verify DATABASE_URL is set and that 'npx prisma db push' has been run against that database.",
+      },
+      { status: 500 }
+    );
+  }
 }
 
 export async function POST(req: Request) {
@@ -53,6 +66,14 @@ export async function POST(req: Request) {
     if (e?.code === "P2002") {
       return NextResponse.json({ ok: false, error: "Email already exists" }, { status: 409 });
     }
-    return NextResponse.json({ ok: false, error: "Create failed" }, { status: 500 });
+    return NextResponse.json(
+      {
+        ok: false,
+        error: "Create failed",
+        detail: e?.message ?? String(e),
+        code: e?.code,
+      },
+      { status: 500 }
+    );
   }
 }

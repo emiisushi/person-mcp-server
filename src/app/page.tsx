@@ -15,6 +15,20 @@ type Person = {
 
 const empty = { name: "", email: "", age: "", role: "", bio: "" };
 
+async function safeJson(res: Response) {
+  const text = await res.text();
+  if (!text) {
+    throw new Error(
+      `Empty response from server (HTTP ${res.status}). The API likely crashed — check that DATABASE_URL is set and 'prisma db push' has been run.`
+    );
+  }
+  try {
+    return JSON.parse(text);
+  } catch {
+    throw new Error(`Non-JSON response (HTTP ${res.status}): ${text.slice(0, 200)}`);
+  }
+}
+
 export default function PersonsPage() {
   const [persons, setPersons] = useState<Person[]>([]);
   const [loading, setLoading] = useState(true);
@@ -29,7 +43,7 @@ export default function PersonsPage() {
     setError(null);
     try {
       const res = await fetch(`/api/persons${q ? `?q=${encodeURIComponent(q)}` : ""}`, { cache: "no-store" });
-      const json = await res.json();
+      const json = await safeJson(res);
       if (!json.ok) throw new Error(json.error || "Failed to load");
       setPersons(json.data);
     } catch (e: any) {
@@ -61,7 +75,7 @@ export default function PersonsPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
       });
-      const json = await res.json();
+      const json = await safeJson(res);
       if (!json.ok) throw new Error(json.error || "Request failed");
       setForm(empty);
       setEditingId(null);
@@ -78,7 +92,7 @@ export default function PersonsPage() {
     setBusy(true);
     try {
       const res = await fetch(`/api/persons/${id}`, { method: "DELETE" });
-      const json = await res.json();
+      const json = await safeJson(res);
       if (!json.ok) throw new Error(json.error || "Delete failed");
       await load();
     } catch (e: any) {
