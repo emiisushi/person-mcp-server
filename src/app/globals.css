@@ -1,0 +1,40 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: light dark;
+}
+
+html, body {
+  @apply bg-slate-50 text-slate-900;
+}
+
+@media (prefers-color-scheme: dark) {
+  html, body {
+    @apply bg-slate-950 text-slate-100;
+  }
+}
+
+.card {
+  @apply rounded-2xl border border-slate-200/70 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-sm;
+}
+
+.btn {
+  @apply inline-flex items-center justify-center rounded-lg px-4 py-2 text-sm font-medium transition focus:outline-none focus:ring-2 focus:ring-brand disabled:opacity-60;
+}
+.btn-primary { @apply btn bg-brand text-white hover:bg-brand-dark; }
+.btn-secondary { @apply btn bg-slate-200 text-slate-900 hover:bg-slate-300 dark:bg-slate-800 dark:text-slate-100 dark:hover:bg-slate-700; }
+.btn-danger { @apply btn bg-red-600 text-white hover:bg-red-700; }
+
+.input {
+  @apply w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-brand focus:ring-2 focus:ring-brand/30 focus:outline-none dark:border-slate-700 dark:bg-slate-900;
+}
+
+.badge {
+  @apply inline-flex items-center rounded-full bg-slate-100 dark:bg-slate-800 px-2.5 py-0.5 text-xs font-medium text-slate-700 dark:text-slate-200;
+}
+
+pre.code {
+  @apply overflow-x-auto rounded-lg bg-slate-900 text-slate-100 p-4 text-xs leading-relaxed;
+}
